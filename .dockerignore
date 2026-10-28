@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+*.test.js
+*.spec.cjs
+.env
+.env.*
+!.env.example
+.git/
+README.md
+blueprints/

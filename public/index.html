@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A thoughtful AI assistant for planning celebrations and community events." />
+    <title>Gatherly | Celebration & Event Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Gatherly home">
+        <span class="brand-mark" aria-hidden="true">✦</span>
+        <span>Gatherly</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="#how-it-works">How it works</a>
+        <a href="#planner">Start planning</a>
+      </nav>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Your celebration, beautifully organized</p>
+          <h1 id="hero-title">Plan the moments people remember.</h1>
+          <p class="hero-text">Gatherly turns your event idea into a clear budget, timeline, vendor checklist, and joyful details.</p>
+          <a class="button button-primary" href="#planner">Build my plan <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="hero-card" aria-label="Planning preview">
+          <div class="hero-card-top"><span class="status-dot"></span> Your planning companion</div>
+          <p class="quote">“A warm, thoughtful celebration starts with one simple plan.”</p>
+          <div class="mini-check"><span aria-hidden="true">✓</span> Budget mapped</div>
+          <div class="mini-check"><span aria-hidden="true">✓</span> Timeline ready</div>
+          <div class="mini-check"><span aria-hidden="true">✓</span> Ideas personalized</div>
+        </div>
+      </section>
+
+      <section id="how-it-works" class="section" aria-labelledby="how-title">
+        <p class="eyebrow">Simple by design</p>
+        <h2 id="how-title">From “what if?” to “it’s ready.”</h2>
+        <div class="feature-grid">
+          <article class="feature-card"><span class="feature-number">01</span><h3>Tell us the occasion</h3><p>Share your event type, date, guest count, and the feeling you want to create.</p></article>
+          <article class="feature-card"><span class="feature-number">02</span><h3>Shape the essentials</h3><p>Get practical budget categories, milestones, and vendor tasks that fit your reality.</p></article>
+          <article class="feature-card"><span class="feature-number">03</span><h3>Make it yours</h3><p>Explore personal ideas and refine the plan with your AI planning companion.</p></article>
+        </div>
+      </section>
+
+      <section id="planner" class="planner-section section" aria-labelledby="planner-title">
+        <div>
+          <p class="eyebrow">Phase 2 · Your first plan</p>
+          <h2 id="planner-title">Let’s make it feel doable.</h2>
+          <p class="section-intro">Give us the essentials and we’ll shape a budget, timeline, checklist, and a few ideas to make the event yours.</p>
+        </div>
+        <form id="planner-form" class="planner-form">
+          <label for="event-type">What are you planning?</label>
+          <select id="event-type" name="eventType" required>
+            <option value="">Choose an occasion</option>
+            <option>Wedding</option>
+            <option>Birthday</option>
+            <option>Community event</option>
+            <option>Other celebration</option>
+          </select>
+          <div class="form-row">
+            <div><label for="guest-count">Expected guests</label><input id="guest-count" name="guestCount" type="number" min="1" max="10000" placeholder="50" required /></div>
+            <div><label for="budget">Budget</label><input id="budget" name="budget" type="number" min="1" step="1" placeholder="5000" required /></div>
+          </div>
+          <label for="event-date">Event date <span class="optional">(optional)</span></label>
+          <input id="event-date" name="eventDate" type="date" />
+          <button class="button button-primary" type="submit">Create my starting point <span aria-hidden="true">→</span></button>
+          <p id="form-message" class="form-message" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section id="plan-results" class="plan-results section" aria-labelledby="results-title" hidden>
+        <div class="results-heading">
+          <p class="eyebrow">Your celebration map</p>
+          <h2 id="results-title">A thoughtful place to begin.</h2>
+          <div class="plan-actions">
+            <button id="save-plan-button" class="button button-primary" type="button">Save this plan</button>
+            <button id="load-plans-button" class="button button-secondary" type="button">View saved plans</button>
+          </div>
+          <p id="save-plan-result" class="tool-result" role="status" aria-live="polite"></p>
+        </div>
+        <div class="results-grid">
+          <article class="result-card result-wide"><h3>Budget guide</h3><div id="budget-breakdown" class="budget-list"></div></article>
+          <article class="result-card"><h3>Timeline</h3><ol id="timeline-list" class="timeline-list"></ol></article>
+          <article class="result-card"><h3>Checklist</h3><div id="checklist" class="checklist"></div></article>
+          <article class="result-card"><h3>Ideas for your guests</h3><ul id="ideas-list" class="ideas-list"></ul></article>
+        </div>
+        <div id="saved-plans" class="saved-plans" hidden aria-live="polite"></div>
+      </section>
+
+      <section id="assistant" class="assistant-section section" aria-labelledby="assistant-title">
+        <div class="assistant-intro">
+          <p class="eyebrow">AI · Planning companion</p>
+          <h2 id="assistant-title">Have a question? Let’s think it through.</h2>
+          <p class="section-intro">Ask for ideas, tradeoffs, or the next practical step. The assistant uses your current plan when one is available.</p>
+        </div>
+        <div class="chat-card">
+          <div id="chat-messages" class="chat-messages" aria-live="polite" aria-label="Conversation"></div>
+          <form id="chat-form" class="chat-form">
+            <label class="sr-only" for="chat-input">Message the planning assistant</label>
+            <textarea id="chat-input" rows="2" maxlength="1000" placeholder="What should I prioritize next?" required></textarea>
+            <button class="button button-primary" type="submit">Ask Gatherly <span aria-hidden="true">→</span></button>
+          </form>
+        </div>
+      </section>
+
+      <section id="google-tools" class="google-tools section" aria-labelledby="tools-title">
+        <div>
+          <p class="eyebrow">Phase 4 · Google tools</p>
+          <h2 id="tools-title">Make the plan easier to share.</h2>
+          <p class="section-intro">Translate a guest note, hear a short message aloud, save the date, or find nearby venues.</p>
+        </div>
+        <div class="tools-grid">
+          <article class="tool-card">
+            <h3>Translate a message</h3>
+            <form id="translate-form" class="tool-form">
+              <label class="sr-only" for="translate-text">Text to translate</label>
+              <textarea id="translate-text" rows="3" maxlength="2000" placeholder="Welcome to our celebration!" required></textarea>
+              <label for="translate-language">Language</label>
+              <select id="translate-language">
+                <option value="hindi">Hindi</option><option value="tamil">Tamil</option><option value="telugu">Telugu</option>
+                <option value="bengali">Bengali</option><option value="marathi">Marathi</option>
+              </select>
+              <button class="button button-primary" type="submit">Translate</button>
+              <p id="translate-result" class="tool-result" role="status" aria-live="polite"></p>
+            </form>
+          </article>
+          <article class="tool-card">
+            <h3>Planning shortcuts</h3>
+            <div class="shortcut-actions">
+              <a id="calendar-link" class="button button-secondary" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Add to Google Calendar</a>
+              <a id="maps-link" class="button button-secondary" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Find venues on Maps</a>
+              <button id="speak-button" class="button button-secondary" type="button">Read a message aloud</button>
+            </div>
+            <p id="tools-result" class="tool-result" role="status" aria-live="polite"></p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer"><span>Gatherly</span><span>Plan with care. Celebrate with joy.</span></footer>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
