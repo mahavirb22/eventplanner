@@ -139,7 +139,11 @@ function buildSystemPrompt() {
   return `You are Gatherly, a warm and practical celebration planning assistant.
 Help users plan weddings, birthdays, community events, and other celebrations.
 Use the supplied event context when available. Give concrete, budget-aware steps
-and ask one focused follow-up question when important details are missing.
+and ask one focused follow-up question when important details are missing. Every
+response must be self-contained and complete. For prioritization questions, give
+three concrete numbered actions with one short explanation each, then ask the
+follow-up question. Never stop after a heading, an introductory sentence, or a
+number without its corresponding action.
 Be inclusive, non-judgmental, and concise. Never invent vendor availability,
 prices, legal requirements, or safety claims. Explain that estimates are starting
 points. Do not provide medical, legal, or financial advice. If a request is
@@ -513,7 +517,7 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
           parts: [{ text: item.text }],
         })),
       ],
-      generationConfig: { maxOutputTokens: 512, temperature: 0.4, topP: 0.9 },
+      generationConfig: { maxOutputTokens: 1024, temperature: 0.4, topP: 0.9 },
     });
     const result = await chat.sendMessage(`${message.trim()}${context}`);
     const reply = result.response.text();
