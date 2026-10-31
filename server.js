@@ -1,10 +1,12 @@
 /**
  * @fileoverview Celebration & Event Planner Express backend.
- * @description Phase 1-5 server foundation with secure middleware,
+ * @description Complete server foundation with secure middleware,
  * deterministic planning, AI assistance, optional Google services, Firestore
  * persistence, and static SPA delivery.
  * @module server
  */
+
+'use strict';
 
 import 'dotenv/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -26,6 +28,48 @@ const port = Number(process.env.PORT || 8080);
 const geminiModelName = 'gemini-3-flash-preview';
 const demoPlans = new Map();
 let firestore;
+
+// ── Data Contracts & Error Codes ─────────────────────────────────────────────
+
+/**
+ * @typedef {Object} APIError
+ * @property {string} code - Stable machine-readable error code.
+ * @property {string} message - Safe client-facing message.
+ */
+
+/**
+ * @typedef {Object} PlanDetails
+ * @property {string} eventType - Celebration type.
+ * @property {number} guestCount - Number of expected guests.
+ * @property {number} budget - Total planning budget.
+ * @property {string|undefined} eventDate - Optional ISO event date.
+ */
+
+/**
+ * @typedef {Object} GeneratedPlan
+ * @property {Array<Object>} budgetBreakdown - Allocated budget categories.
+ * @property {Array<Object>} timeline - Planning milestones.
+ * @property {Array<Object>} vendorChecklist - Actionable planning tasks.
+ * @property {Array<Object>} ideas - Personalized celebration ideas.
+ */
+
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} valid - Whether the value passed validation.
+ * @property {*} [value] - Normalized value when validation succeeds.
+ * @property {{error: APIError}} [error] - Safe error response when invalid.
+ */
+
+const ERROR_CODES = {
+  VALIDATION_ERROR: { status: 400, message: 'Invalid request parameters.' },
+  MISSING_FIELD: { status: 400, message: 'Required field missing.' },
+  TEXT_TOO_LONG: { status: 400, message: 'Text exceeds the permitted length.' },
+  RATE_LIMITED: { status: 429, message: 'Too many requests.' },
+  AI_UNAVAILABLE: { status: 502, message: 'AI service unavailable.' },
+  INTERNAL_ERROR: { status: 500, message: 'Internal server error.' },
+};
+
+// ── Optional Persistence Adapter ─────────────────────────────────────────────
 
 /**
  * Loads Firestore only when complete server credentials are configured.
@@ -64,7 +108,7 @@ async function getFirestore() {
 /**
  * Validates the anonymous workspace identifier used by the browser.
  * @param {*} value - Candidate workspace ID.
- * @returns {{valid: boolean, error?: {error: object}}} Validation result.
+ * @returns {ValidationResult} Validation result.
  */
 function validateWorkspaceId(value) {
   if (typeof value !== 'string' || !/^[a-zA-Z0-9_-]{12,80}$/.test(value)) {
@@ -79,7 +123,7 @@ function validateWorkspaceId(value) {
 /**
  * Validates and limits the saved plan payload.
  * @param {*} plan - Candidate plan.
- * @returns {{valid: boolean, error?: {error: object}}} Validation result.
+ * @returns {ValidationResult} Validation result.
  */
 function validateSavedPlan(plan) {
   if (!plan || typeof plan !== 'object' || Array.isArray(plan)) {
@@ -108,7 +152,8 @@ function validateSavedPlan(plan) {
  * @returns {{error: {code: string, message: string}}} Error payload.
  */
 function createError(code, message) {
-  return { error: { code, message } };
+  const definition = ERROR_CODES[code] || ERROR_CODES.INTERNAL_ERROR;
+  return { error: { code, message: message || definition.message } };
 }
 
 /**
@@ -116,7 +161,7 @@ function createError(code, message) {
  * @param {*} value - Value to validate.
  * @param {string} name - Field name used in the error.
  * @param {number} [maxLength=200] - Maximum accepted length.
- * @returns {{valid: boolean, error?: {code: string, message: string}}} Validation result.
+ * @returns {ValidationResult} Validation result.
  */
 function validateString(value, name, maxLength = 200) {
   if (typeof value !== 'string' || value.trim().length === 0) {
@@ -130,6 +175,8 @@ function validateString(value, name, maxLength = 200) {
   }
   return { valid: true };
 }
+
+// ── AI Prompt & Conversation Validation ──────────────────────────────────────
 
 /**
  * Builds the planning assistant's safety and behavior instructions.
@@ -153,7 +200,7 @@ unrelated to event planning, politely redirect it to the celebration plan.`;
 /**
  * Validates the bounded conversation history sent by the browser.
  * @param {*} history - Candidate history array.
- * @returns {{valid: boolean, value?: Array, error?: {error: object}}} Validation result.
+ * @returns {ValidationResult} Validation result.
  */
 function validateChatHistory(history) {
   if (history === undefined) {
@@ -175,6 +222,8 @@ function validateChatHistory(history) {
   }
   return { valid: true, value };
 }
+
+// ── Deterministic Planning Engine ────────────────────────────────────────────
 
 const PLAN_TEMPLATES = {
   Wedding: {
@@ -229,8 +278,8 @@ const PLAN_TEMPLATES = {
 
 /**
  * Builds a practical first event plan from validated setup details.
- * @param {{eventType: string, guestCount: number, budget: number, eventDate?: string}} details - Event setup.
- * @returns {{budgetBreakdown: Array, timeline: Array, vendorChecklist: Array, ideas: Array}} Generated plan.
+ * @param {PlanDetails} details - Event setup.
+ * @returns {GeneratedPlan} Generated plan.
  */
 function buildPlan({ eventType, guestCount, budget, eventDate }) {
   const template = PLAN_TEMPLATES[eventType] || PLAN_TEMPLATES['Other celebration'];
@@ -292,6 +341,8 @@ function isValidISODate(value) {
   return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
 }
 
+// ── External Service Helpers ──────────────────────────────────────────────────
+
 const SUPPORTED_LANGUAGES = {
   hindi: 'hi',
   tamil: 'ta',
@@ -333,6 +384,8 @@ function buildMapsLink(query) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
 
+// ── Security & Middleware ─────────────────────────────────────────────────────
+
 const app = express();
 
 app.use(helmet({
@@ -353,6 +406,10 @@ app.use(cors({
 }));
 app.use(compression());
 app.use(express.json({ limit: '1mb' }));
+app.use((req, _res, next) => {
+  req.requestId = randomUUID();
+  next();
+});
 
 const apiLimiter = rateLimit({
   windowMs: 60_000,
@@ -372,6 +429,12 @@ const chatLimiter = rateLimit({
   skip: () => isTestEnv,
 });
 
+// ── API Routes ────────────────────────────────────────────────────────────────
+
+/**
+ * @route GET /api/health
+ * @desc Reports service health for uptime monitoring.
+ */
 app.get('/api/health', (_req, res) => {
   res.set('Cache-Control', 'no-store').json({
     status: 'ok',
@@ -380,6 +443,10 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+/**
+ * @route GET /api/config
+ * @desc Reports which optional integrations are configured.
+ */
 app.get('/api/config', apiLimiter, (_req, res) => {
   res.set('Cache-Control', 'public, max-age=3600').json({
     aiAvailable: Boolean(process.env.GEMINI_API_KEY),
@@ -388,6 +455,10 @@ app.get('/api/config', apiLimiter, (_req, res) => {
   });
 });
 
+/**
+ * @route POST /api/preview-plan
+ * @desc Validates event details and returns a deterministic starter plan.
+ */
 app.post('/api/preview-plan', apiLimiter, (req, res) => {
   const { eventType, guestCount, budget } = req.body ?? {};
   const submittedEventDate = req.body?.eventDate;
@@ -424,6 +495,10 @@ app.post('/api/preview-plan', apiLimiter, (req, res) => {
   });
 });
 
+/**
+ * @route POST /api/plans
+ * @desc Saves a validated plan in Firestore or local demo persistence.
+ */
 app.post('/api/plans', apiLimiter, async (req, res) => {
   const { workspaceId, plan } = req.body ?? {};
   const workspaceValidation = validateWorkspaceId(workspaceId);
@@ -456,6 +531,10 @@ app.post('/api/plans', apiLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @route GET /api/plans
+ * @desc Loads plans belonging to a validated workspace.
+ */
 app.get('/api/plans', apiLimiter, async (req, res) => {
   const { workspaceId } = req.query;
   const workspaceValidation = validateWorkspaceId(workspaceId);
@@ -482,6 +561,10 @@ app.get('/api/plans', apiLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @route POST /api/chat
+ * @desc Returns a bounded Gemini planning response or demo fallback.
+ */
 app.post('/api/chat', chatLimiter, async (req, res) => {
   const { message, history, planContext } = req.body ?? {};
   const messageValidation = validateString(message, 'Message', 1000);
@@ -531,6 +614,10 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @route POST /api/translate
+ * @desc Translates event-planning text through Google or Gemini.
+ */
 app.post('/api/translate', apiLimiter, async (req, res) => {
   const { text, language } = req.body ?? {};
   const textValidation = validateString(text, 'Text', 2000);
@@ -573,6 +660,10 @@ app.post('/api/translate', apiLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @route POST /api/text-to-speech
+ * @desc Generates optional speech audio for supported Indian locales.
+ */
 app.post('/api/text-to-speech', apiLimiter, async (req, res) => {
   const { text, language = 'en-IN' } = req.body ?? {};
   const textValidation = validateString(text, 'Text', 500);
@@ -621,6 +712,10 @@ app.post('/api/text-to-speech', apiLimiter, async (req, res) => {
   }
 });
 
+/**
+ * @route POST /api/calendar-link
+ * @desc Builds a Google Calendar template link without OAuth.
+ */
 app.post('/api/calendar-link', apiLimiter, (req, res) => {
   const { title, date, details } = req.body ?? {};
   const titleValidation = validateString(title, 'Title', 200);
@@ -631,6 +726,10 @@ app.post('/api/calendar-link', apiLimiter, (req, res) => {
   return res.status(200).json({ url: buildCalendarLink({ title: title.trim(), date, details }), service: 'google-calendar' });
 });
 
+/**
+ * @route POST /api/maps-link
+ * @desc Builds a Google Maps venue search link.
+ */
 app.post('/api/maps-link', apiLimiter, (req, res) => {
   const { query } = req.body ?? {};
   const queryValidation = validateString(query, 'Query', 200);
@@ -647,10 +746,17 @@ app.get('/{*splat}', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// ── Global Error Handler ──────────────────────────────────────────────────────
+
 app.use((error, _req, res, _next) => {
-  console.error('Unhandled request error:', error);
-  res.status(500).json(createError('INTERNAL_ERROR', 'Something went wrong. Please try again.'));
+  if (error?.type === 'entity.parse.failed') {
+    return res.status(400).json(createError('VALIDATION_ERROR', 'Request body must be valid JSON.'));
+  }
+  console.error('Unhandled request error:', error instanceof Error ? error.message : error);
+  return res.status(500).json(createError('INTERNAL_ERROR', 'Something went wrong. Please try again.'));
 });
+
+// ── Start Server ──────────────────────────────────────────────────────────────
 
 let server;
 if (!isTestEnv || process.env.E2E === 'true') {

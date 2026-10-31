@@ -15,6 +15,15 @@ module.exports = defineConfig({
     port: 8080,
     timeout: 15000,
     reuseExistingServer: !process.env.CI,
-    env: { NODE_ENV: 'test', E2E: 'true', PORT: '8080' },
+    env: {
+      NODE_ENV: 'test',
+      E2E: 'true',
+      PORT: '8080',
+      GEMINI_API_KEY: '',
+      GOOGLE_CLOUD_API_KEY: '',
+      FIREBASE_PROJECT_ID: '',
+      FIREBASE_CLIENT_EMAIL: '',
+      FIREBASE_PRIVATE_KEY: '',
+    },
   },
 });

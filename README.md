@@ -70,6 +70,7 @@ future hardening pass.
 - Dockerfile with dependency-layer caching, non-root execution, and healthcheck.
 - `.dockerignore`, `.gitattributes`, and Vercel rewrite configuration.
 - Production startup compatibility for CommonJS Google Cloud packages.
+- Root-level `AGENTS.md` and `CLAUDE.md` guidance files for consistent AI-assisted maintenance.
 
 ### Planned phases
 

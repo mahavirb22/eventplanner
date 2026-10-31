@@ -23,6 +23,9 @@ const savePlanButton = document.querySelector('#save-plan-button');
 const loadPlansButton = document.querySelector('#load-plans-button');
 const savePlanResult = document.querySelector('#save-plan-result');
 const savedPlans = document.querySelector('#saved-plans');
+
+/* ── Local Workspace State ───────────────────────────────── */
+
 const chatHistory = [];
 let latestPlan;
 let savedPlanRecords = [];
@@ -77,6 +80,8 @@ async function createStartingPoint(event) {
 }
 
 plannerForm?.addEventListener('submit', createStartingPoint);
+
+/* ── Chat ─────────────────────────────────────────────────── */
 
 /**
  * Adds a safely-rendered message to the conversation.
@@ -135,6 +140,8 @@ async function sendChatMessage(event) {
 
 chatForm?.addEventListener('submit', sendChatMessage);
 appendChatMessage('model', 'Tell me what you are planning, and I will help you choose the next thoughtful step.');
+
+/* ── Google Tools ────────────────────────────────────────── */
 
 /**
  * Creates safe Google Calendar and Maps deep links for the current plan.
@@ -305,6 +312,8 @@ function restoreSavedPlan(event) {
 savePlanButton?.addEventListener('click', saveCurrentPlan);
 loadPlansButton?.addEventListener('click', loadSavedPlans);
 savedPlans?.addEventListener('click', restoreSavedPlan);
+
+/* ── Rendering Helpers ───────────────────────────────────── */
 
 /**
  * Escapes dynamic text before placing it into the result cards.
