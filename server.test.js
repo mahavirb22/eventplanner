@@ -138,6 +138,15 @@ describe('Celebration Planner API', () => {
     expect(response.body.error.code).toBe('VALIDATION_ERROR');
   });
 
+  test('rejects malformed JSON request bodies', async () => {
+    const response = await api
+      .post('/api/preview-plan')
+      .set('Content-Type', 'application/json')
+      .send('{"eventType":');
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
   test('returns a demo translation without service keys', async () => {
     const response = await api.post('/api/translate').send({
       text: 'Welcome to our celebration',

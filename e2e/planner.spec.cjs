@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('Planner flow', () => {
   test('creates and displays a plan', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.selectOption('#event-type', { label: 'Birthday' });
     await page.fill('#guest-count', '25');
     await page.fill('#budget', '1500');
@@ -16,7 +16,7 @@ test.describe('Planner flow', () => {
   });
 
   test('shows demo assistant response', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.fill('#chat-input', 'Help me choose my next step.');
     await page.click('#chat-form button[type="submit"]');
     await expect(page.locator('.chat-model')).toHaveCount(2);
@@ -24,7 +24,7 @@ test.describe('Planner flow', () => {
   });
 
   test('exposes Google planning tools', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#translate-form')).toBeVisible();
     await expect(page.locator('#calendar-link')).toHaveAttribute('rel', /noopener/);
     await expect(page.locator('#maps-link')).toHaveAttribute('target', '_blank');

@@ -12,6 +12,8 @@ Celebration & Event Planner challenge.
   body limits.
 - Accessible responsive SPA shell with skip navigation, landmarks, labels,
   focus states, and reduced-motion support.
+- Uses local system font fallbacks so the core experience does not depend on
+  third-party font requests.
 - Initial event setup form for occasion, guest count, and budget.
 - Validated `POST /api/preview-plan` endpoint.
 - Jest + Supertest baseline coverage.
@@ -62,14 +64,16 @@ future hardening pass.
 
 ### Phase 6 — Testing and deployment (complete)
 
-- 18 Jest + Supertest backend tests covering APIs, validation, integrations,
+- Jest + Supertest backend tests covering APIs, validation, integrations,
   persistence, SPA delivery, and security headers.
 - 5 Playwright E2E tests covering accessibility landmarks, labelled controls,
   plan generation, AI demo chat, and Google tool surfaces.
 - Playwright configuration with an explicit E2E server mode.
+- E2E mode forces provider-backed endpoints into demo mode for deterministic tests.
 - Dockerfile with dependency-layer caching, non-root execution, and healthcheck.
 - `.dockerignore`, `.gitattributes`, and Vercel rewrite configuration.
 - Production startup compatibility for CommonJS Google Cloud packages.
+- Root-level `AGENTS.md` and `CLAUDE.md` guidance files for consistent AI-assisted maintenance.
 
 ### Planned phases
 

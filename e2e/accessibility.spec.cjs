@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('Accessible planner shell', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
   });
 
   test('has skip navigation and landmarks', async ({ page }) => {
